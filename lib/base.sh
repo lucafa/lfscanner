@@ -8,6 +8,8 @@ declare -r MASSCAN=`which masscan`
 declare -r DIRB=`which dirb`
 declare -r WHATWEB=`which whatweb`
 declare -r NBTSCAN=`which nbtscan`
+declare -r UNISCAN=`which uniscan`
+declare -r GOBUSTER=`which gobuster`
 
 
 IP=$1
@@ -46,7 +48,7 @@ function advance_web_recon() {
 	
 	$NMAP -sT --script=$script -sV -v0 -A -T4 -oA $folder/$ip"_WEB" -p $port $ip 
         gobuster_assessment $ip	$folder 
-
+	uniscan_assessment $ip  $folder
 }
 
 function services_scan(){
@@ -151,7 +153,7 @@ mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV --script=$script $ip -oA $folder/$service/$service-NMAP -v -n -p$ports -Pn > /dev/null 2>&1
 }
 
 
@@ -166,11 +168,10 @@ mkdir $folder/$service
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
 #nmap con script per samba
-nmap -d -sV  --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV  --script=$script $ip -oA $folder/$service/$service-NMAP -v -n -p$ports -Pn > /dev/null 2>&1
 
 #Netbios scan
-$NBTSCAN -r $IP >> $2/$ports-nbtscan
-
+$NBTSCAN -r $IP >> $folder/$service/$service-NBTSCAN
 
 }
 
@@ -184,12 +185,15 @@ mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV --script=$script $ip -oA $folder/$service/$service-NMAP -v -n -p$ports -Pn > /dev/null 2>&1
 }
 
 function whatweb_assessment(){
 ip=$1
-folder=$2
+directory=$2
+service=http
+folder=$directory/$service
+
 port_number=`cat /root/$ip/web | awk -F, '{print NF}'`
 
 for i in $( eval echo {1..$port_number} ) 
@@ -206,7 +210,8 @@ do
 
 function nikto_scan (){
 ip=$1
-folder=$2
+directory=$2
+folder=$directory/$service
 port_number=`cat /root/$ip/web | awk -F, '{print NF}'`
 
 for i in $( eval echo {1..$port_number} ) 
@@ -253,7 +258,6 @@ ip=$1
 folder=$2
 service=http
 port_number=`cat /root/$ip/web | awk -F, '{print NF}'`
-mkdir $folder/$service 
 
 for i in $( eval echo {1..$port_number} ) 
 do
