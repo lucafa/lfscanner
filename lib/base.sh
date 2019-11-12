@@ -38,12 +38,15 @@ function second_stagerecon(){
 
 function advance_web_recon() {
 	ip=$1
-	folder=$2
 	port=`cat $SCAN_FOLDER/web`
 	service=http
+	mkdir $2/$service
+	folder=$2/$service
 	script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 	
-	$NMAP -sT -sC -sV -v0 -A -T4 -oA $SCAN_FOLDER/$ip"_WEB" -p $port $ip 
+	$NMAP -sT --script=$script -sV -v0 -A -T4 -oA $folder/$ip"_WEB" -p $port $ip 
+        gobuster_assessment $ip	$folder 
+
 }
 
 function services_scan(){
@@ -79,9 +82,11 @@ service=ftp
 ip=$1
 folder=$2
 ports=21
+mkdir $folder/$service
+
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn  > /dev/null 2>&1
+nmap -d -sV --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn  > /dev/null 2>&1
 }
 
 function ssh_scan(){
@@ -89,9 +94,10 @@ service=ssh
 ip=$1
 folder=$2
 ports=22
+mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
-nmap -d -sV  --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV  --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
 }
 
 
@@ -101,10 +107,11 @@ service=telnet
 ip=$1
 folder=$2
 ports=23
+mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
 }
 
 
@@ -114,10 +121,11 @@ service=smtp
 ip=$1
 folder=$2
 ports=25
+mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1 
+nmap -d -sV --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1 
 }
 
 
@@ -126,10 +134,11 @@ service=dns
 ip=$1
 folder=$2
 ports=53
+mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV  --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV  --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
 }
 
 
@@ -138,10 +147,11 @@ service=pop
 ip=$1
 folder=$2
 ports=110
+mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
 }
 
 
@@ -151,11 +161,12 @@ service=smb
 ip=$1
 folder=$2
 ports=445
+mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
 #nmap con script per samba
-nmap -d -sV  --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV  --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
 
 #Netbios scan
 $NBTSCAN -r $IP >> $2/$ports-nbtscan
@@ -169,10 +180,11 @@ service=mysql
 ip=$1
 folder=$2
 ports=3306
+mkdir $folder/$service
 
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
-nmap -d -sV --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
+nmap -d -sV --script=$script $ip -oA $folder/$service/$ip-$service -v -n -p$ports -Pn > /dev/null 2>&1
 }
 
 function whatweb_assessment(){
@@ -216,4 +228,42 @@ masscan -p U:1-65535  $ip   -oG $folder/masscan_udp --rate=100 > /dev/null 2>&1
 masscan -p 1-65535  $ip   -oG $folder/masscan_tcp --rate=100 > /dev/null 2>&1
 
 }
+
+function gobuster_assessment(){
+ip=$1
+folder=$2
+service=http
+port_number=`cat /root/$ip/web | awk -F, '{print NF}'`
+mkdir $folder/$service 
+
+for i in $( eval echo {1..$port_number} ) 
+do
+	port=`cat /root/$ip/web | awk -v x=$i -F, '{print $x}'`
+	if [ $port == 80 ] || [ $port == 8080 ]; then
+	       gobuster dir -u  http://$ip:$port -w /usr/share/dirb/wordlists/common.txt > $folder/GOBUSTER_$port &
+	else
+	       gobuster dir -u  https://$ip:$port -w /usr/share/dirb/wordlists/common.txt > $folder/GOBUSTER_$port &
+	fi
+done
+}
+
+
+function uniscan_assessment(){
+ip=$1
+folder=$2
+service=http
+port_number=`cat /root/$ip/web | awk -F, '{print NF}'`
+mkdir $folder/$service 
+
+for i in $( eval echo {1..$port_number} ) 
+do
+	port=`cat /root/$ip/web | awk -v x=$i -F, '{print $x}'`
+	if [ $port == 80 ] || [ $port == 8080 ]; then
+	       uniscan -qwedsgju http://$ip:$port >> $folder/UNISCAN_$port &
+	else
+	       uniscan -qwedsgju https://$ip:$port >> $folder/UNISCAN_$port &
+	fi
+done
+}
+
 
