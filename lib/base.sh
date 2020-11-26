@@ -18,8 +18,12 @@ function test_program() {
   return 1
 }
 
-function extract_port(){
+function extract_tcp_port(){
 cat "$SCAN_FOLDER/basic_tcp" | grep open | awk '{print $3}' >> $SCAN_FOLDER/tcp_ports
+}
+
+function extract_udp_port(){
+cat "$SCAN_FOLDER/basic_udp" | grep open | awk '{print $3}' >> $SCAN_FOLDER/udp_ports
 }
 
 function basic_tcp_scan() {
@@ -27,7 +31,7 @@ function basic_tcp_scan() {
 }
 
 function basic_udp_scan() {
-	$MASSCAN -pU:1-65535 $IP --rate=300
+	$MASSCAN -pU:1-65535 $IP --rate=300 -oL "$SCAN_FOLDER/basic_udp" 
 }
 
 
@@ -70,26 +74,8 @@ function port_service(){
 	done < $SCAN_FOLDER/nmap_scan
 	}
 
-function base_web_recon() {
-	$NMAP -Pn  -p $WEB_PORT $IP | grep open | awk '{print $1}' | awk -F "/" '{print $1}' | tr "\n" "," | sed -e "s/,$/\n/" >> /root/$IP/web
-#	$NMAP -Pn  -p $WEB_PORT $IP | grep open | awk '{print $1}' | awk -F "/" '{print $1}'  >> $SCAN_FOLDER/web
-}
 
-function second_stagerecon(){
-	IP=$1
-	FOLDER=$2
-	#Script to create nmap output ports
-	#$NMAP -Pn -p $DAEMON_PORT $IP | grep open | awk '{print $1}' | awk -F "/" '{print $1}' | tr "\n" "," | sed -e "s/,$/\n/" >> $FOLDER/services
-	#Script to split ports line by line
-	$NMAP -Pn -p $DAEMON_PORT $IP | grep open | awk '{print $1}' | awk -F "/" '{print $1}'  >> $FOLDER/services
-	}
 
-function advance_web_recon() {
-	IP=$1
-	FOLDER=$2
-	PORT=`cat $SCAN_FOLDER/web`
-	$NMAP -sT -sC -sV -v0 -A -T4 -oA $SCAN_FOLDER/$IP"_WEB" -p $PORT $IP 
-}
 
 function services_scan(){
 	IP=$1
@@ -124,6 +110,14 @@ service=ftp
 ip=$1
 folder=$2
 ports=21
+if [ -f $SCAN_FOLDER/ftp_port ]
+then 
+	FILE_FTP="$SCAN_FOLDER/ftp_port"
+else
+	exit
+fi
+
+
 script=$(ls /usr/share/nmap/scripts/ | grep $service | grep -v "flood\|brute\|slowloris\|psexec\|dos" | tr '\n' ',' | sed -e "s/,$//"); echo -e "\n============\nTarget\t $ip\nPorts\t$ports\nScripts\t $script\nOutput\t$ip-$service\n==================\n"
 
 nmap -d -sV --script=$script $ip -oA $ip-$service -v -n -p$ports -PN –sV --script=$script $ip -oA $folder/$ip-$service -v -n -p$ports -Pn 
