@@ -1,0 +1,3 @@
+# lfscanner
+
+Another enumeration script :-)
